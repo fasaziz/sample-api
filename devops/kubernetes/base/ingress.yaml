@@ -1,0 +1,24 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations: 
+    cert-manager.io/cluster-issuer: letsencrypt-capitalontap-com  
+  name: {{.Values.namespace}}-ingress
+spec:
+  ingressClassName: nginx-ext
+  tls:
+  - hosts:
+    - {{.Values.namespace}}.shared.ww.ext.k8s.capitalontap.com    
+    secretName: sampleapi-tls
+  rules:
+  - host: {{.Values.namespace}}.shared.ww.ext.k8s.capitalontap.com
+    http:
+      paths: 
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: sampleapi-service
+              port: 
+                number: 80

@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sampleapi
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      k8s-app: sampleapi
+  template:
+    metadata:
+      labels:
+        k8s-app: sampleapi
+      name: sampleapi
+    spec:      
+      volumes: 
+      - name: appsettings-volume
+        secret:
+          secretName: sampleapisecrets
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+      - name: sampleapi
+        image: {{.Values.image}}
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: http
+        volumeMounts:
+        - name: appsettings-volume
+          mountPath: /app/appsettings.json
+          subPath: appsettings.json
+          readOnly: true       
+      restartPolicy: Always
